@@ -1,46 +1,77 @@
-# Welcome to your Convex + Next.js + Convex Auth app
+# ShopAssist MVP (LB1)
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+Web-App fuer einen einfachen Einkaufsservice als Proof of Concept.
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+## MVP Scope
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Next.js](https://nextjs.org/) for optimized web hosting and page routing
-- [Tailwind](https://tailwindcss.com/) for building great looking accessible UI
-- [Convex Auth](https://labs.convex.dev/auth) for authentication
+Enthalten:
 
-## Get started
+- Registrierung und Login
+- Rollenwahl `customer` oder `shopper`
+- User erstellt Einkaufsliste als Bestellung
+- Shopper sieht offene Bestellungen
+- Shopper uebernimmt eine Bestellung
+- Statusfluss `open -> in_progress -> delivered`
 
-If you just cloned this codebase and didn't use `npm create convex`, run:
+Nicht enthalten:
 
-```
+- Zahlungsabwicklung
+- Matching-Automatisierung
+- Karten/Routing/Push
+
+## Tech Stack
+
+- Next.js (App Router)
+- Convex (DB + Functions)
+- Convex Auth (Password Provider)
+- Tailwind CSS
+
+## Setup
+
+1. Abhaengigkeiten installieren:
+
+```bash
 npm install
+```
+
+2. Umgebungsvariablen vorbereiten:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Convex + Next lokal starten:
+
+```bash
 npm run dev
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+## Build und Start
 
+```bash
+npm run build
+npm run start
 ```
-npm create convex@latest -- -t nextjs-convexauth
-```
 
-## Learn more
+## Happy Path Test
 
-To learn more about developing your project with Convex, check out:
+1. Benutzer A registrieren und als `customer` Rolle setzen.
+2. Bestellung erstellen (Titel + Artikel).
+3. Benutzer B registrieren und als `shopper` Rolle setzen.
+4. Offene Bestellung uebernehmen.
+5. Status auf geliefert setzen.
+6. Bei Benutzer A erscheint die Bestellung mit Status `delivered`.
 
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
-- [Convex Auth docs](https://labs.convex.dev/auth) for documentation on the Convex Auth library.
+## Projektstruktur
 
-## Configuring other authentication methods
+- `app/` Frontend Views
+- `convex/schema.ts` Datenmodell (`profiles`, `orders`)
+- `convex/users.ts` User/Rollen-Logik
+- `convex/orders.ts` Bestell-Workflow und Statuswechsel
+- `proxy.ts` Route-Protection
 
-To configure different authentication methods, see [Configuration](https://labs.convex.dev/auth/config) in the Convex Auth docs.
+## Security Hinweise
 
-## Join the community
-
-Join thousands of developers building full-stack apps with Convex:
-
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+- Keine Secrets im Sourcecode speichern.
+- Alle Secrets ueber `.env`/Plattform-Variablen setzen.
+- `.env*` ist via `.gitignore` ausgeschlossen.

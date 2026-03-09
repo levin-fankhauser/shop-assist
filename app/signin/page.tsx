@@ -3,7 +3,6 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Image from "next/image";
 
 export default function SignIn() {
   const { signIn } = useAuthActions();
@@ -12,107 +11,110 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   return (
-    <div className="flex flex-col gap-8 w-full max-w-lg mx-auto h-screen justify-center items-center px-4">
-      <div className="text-center flex flex-col items-center gap-4">
-        <div className="flex items-center gap-6">
-          <Image
-            src="/convex.svg"
-            alt="Convex Logo"
-            width={90}
-            height={90}
-          />
-          <div className="w-px h-20 bg-slate-300 dark:bg-slate-600"></div>
-          <Image
-            src="/nextjs-icon-light-background.svg"
-            alt="Next.js Logo"
-            width={90}
-            height={90}
-            className="dark:hidden"
-          />
-          <Image
-            src="/nextjs-icon-dark-background.svg"
-            alt="Next.js Logo"
-            width={90}
-            height={90}
-            className="hidden dark:block"
-          />
-        </div>
-        <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-200">
-          Convex + Next.js + Convex Auth
-        </h1>
-        <p className="text-slate-600 dark:text-slate-400">
-          This demo uses Convex Auth for authentication, so you will need to
-          sign in or sign up to access the demo.
-        </p>
-      </div>
-      <form
-        className="flex flex-col gap-4 w-full bg-slate-100 dark:bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-300 dark:border-slate-600"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setLoading(true);
-          setError(null);
-          const formData = new FormData(e.target as HTMLFormElement);
-          formData.set("flow", flow);
-          void signIn("password", formData)
-            .catch((error) => {
-              setError(error.message);
-              setLoading(false);
-            })
-            .then(() => {
-              router.push("/");
-            });
-        }}
-      >
-        <input
-          className="bg-white dark:bg-slate-900 text-foreground rounded-lg p-3 border border-slate-300 dark:border-slate-600 focus:border-slate-500 dark:focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 outline-none transition-all placeholder:text-slate-400"
-          type="email"
-          name="email"
-          placeholder="Email"
-          required
-        />
-        <div className="flex flex-col gap-1">
-          <input
-            className="bg-white dark:bg-slate-900 text-foreground rounded-lg p-3 border border-slate-300 dark:border-slate-600 focus:border-slate-500 dark:focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 outline-none transition-all placeholder:text-slate-400"
-            type="password"
-            name="password"
-            placeholder="Password"
-            minLength={8}
-            required
-          />
-          {flow === "signUp" && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 px-1">
-              Password must be at least 8 characters
-            </p>
-          )}
-        </div>
-        <button
-          className="bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 text-white font-semibold rounded-lg py-3 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? "Loading..." : flow === "signIn" ? "Sign in" : "Sign up"}
-        </button>
-        <div className="flex flex-row gap-2 text-sm justify-center">
-          <span className="text-slate-600 dark:text-slate-400">
-            {flow === "signIn"
-              ? "Don't have an account?"
-              : "Already have an account?"}
-          </span>
-          <span
-            className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 font-medium underline decoration-2 underline-offset-2 hover:no-underline cursor-pointer transition-colors"
-            onClick={() => setFlow(flow === "signIn" ? "signUp" : "signIn")}
-          >
-            {flow === "signIn" ? "Sign up" : "Sign in"}
-          </span>
-        </div>
-        {error && (
-          <div className="bg-rose-500/10 border border-rose-500/30 dark:border-rose-500/50 rounded-lg p-4">
-            <p className="text-rose-700 dark:text-rose-300 font-medium text-sm break-words">
-              Error: {error}
-            </p>
+    <div className="min-h-screen bg-[linear-gradient(135deg,#ffedd5_0%,#fde68a_45%,#fff7ed_100%)] px-4 py-10">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 lg:flex-row lg:items-center">
+        <div className="flex-1 rounded-3xl bg-white/70 p-8 shadow-sm backdrop-blur">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-700">
+            ShopAssist MVP
+          </p>
+          <h1 className="mt-3 font-title text-4xl text-stone-900">
+            Schneller einkaufen lassen
+          </h1>
+          <p className="mt-3 text-stone-700">
+            Melde dich an, um Einkaufslisten zu erstellen oder als Shopper
+            offene Auftraege zu uebernehmen.
+          </p>
+          <div className="mt-6 grid gap-2 text-sm text-stone-700">
+            <p>1. Rolle waehlen: User oder Shopper</p>
+            <p>2. Bestellung erfassen oder uebernehmen</p>
+            <p>3. Status von offen bis geliefert verfolgen</p>
           </div>
-        )}
-      </form>
+        </div>
+
+        <form
+          className="w-full max-w-lg rounded-3xl border border-amber-200 bg-white p-8 shadow-xl"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setLoading(true);
+            setError(null);
+            const formData = new FormData(e.target as HTMLFormElement);
+            formData.set("flow", flow);
+            void signIn("password", formData)
+              .catch((error) => {
+                setError(error.message);
+                setLoading(false);
+              })
+              .then(() => {
+                router.push("/");
+              });
+          }}
+        >
+          <h2 className="font-title text-2xl text-stone-900">
+            {flow === "signIn" ? "Anmelden" : "Registrieren"}
+          </h2>
+          <p className="mt-1 text-sm text-stone-600">
+            Auth via Convex Password Provider
+          </p>
+
+          <div className="mt-5 flex flex-col gap-3">
+            <input
+              className="rounded-lg border border-amber-200 bg-white px-3 py-3 text-stone-900"
+              type="email"
+              name="email"
+              placeholder="Email"
+              required
+            />
+            <div className="flex flex-col gap-1">
+              <input
+                className="rounded-lg border border-amber-200 bg-white px-3 py-3 text-stone-900"
+                type="password"
+                name="password"
+                placeholder="Passwort"
+                minLength={8}
+                required
+              />
+              {flow === "signUp" && (
+                <p className="text-xs text-stone-500">
+                  Passwort mit mindestens 8 Zeichen.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <button
+            className="mt-5 w-full rounded-lg bg-stone-900 py-3 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:opacity-60"
+            type="submit"
+            disabled={loading}
+          >
+            {loading
+              ? "Bitte warten..."
+              : flow === "signIn"
+                ? "Anmelden"
+                : "Registrieren"}
+          </button>
+
+          <div className="mt-4 flex flex-row gap-2 text-sm">
+            <span className="text-stone-600">
+              {flow === "signIn" ? "Noch kein Konto?" : "Bereits registriert?"}
+            </span>
+            <button
+              className="font-semibold text-amber-800 underline"
+              type="button"
+              onClick={() => setFlow(flow === "signIn" ? "signUp" : "signIn")}
+            >
+              {flow === "signIn" ? "Jetzt registrieren" : "Zum Login"}
+            </button>
+          </div>
+
+          {error && (
+            <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3">
+              <p className="text-sm font-medium text-red-700 break-words">
+                Fehler: {error}
+              </p>
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 }

@@ -1,234 +1,335 @@
 "use client";
 
-import { useConvexAuth, useMutation, useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import Link from "next/link";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { Id } from "@/convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { FormEvent, useMemo, useState } from "react";
 
 export default function Home() {
-  return (
-    <>
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md p-4 border-b border-slate-200 dark:border-slate-700 flex flex-row justify-between items-center shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3">
-            <Image src="/convex.svg" alt="Convex Logo" width={32} height={32} />
-            <div className="w-px h-8 bg-slate-300 dark:bg-slate-600"></div>
-            <Image
-              src="/nextjs-icon-light-background.svg"
-              alt="Next.js Logo"
-              width={32}
-              height={32}
-              className="dark:hidden"
-            />
-            <Image
-              src="/nextjs-icon-dark-background.svg"
-              alt="Next.js Logo"
-              width={32}
-              height={32}
-              className="hidden dark:block"
-            />
-          </div>
-          <h1 className="font-semibold text-slate-800 dark:text-slate-200">
-            Convex + Next.js + Convex Auth
-          </h1>
-        </div>
-        <SignOutButton />
-      </header>
-      <main className="p-8 flex flex-col gap-8">
-        <Content />
-      </main>
-    </>
-  );
-}
+  const { isLoading, isAuthenticated } = useConvexAuth();
 
-function SignOutButton() {
-  const { isAuthenticated } = useConvexAuth();
-  const { signOut } = useAuthActions();
-  const router = useRouter();
-  return (
-    <>
-      {isAuthenticated && (
-        <button
-          className="bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
-          onClick={() =>
-            void signOut().then(() => {
-              router.push("/signin");
-            })
-          }
-        >
-          Sign out
-        </button>
-      )}
-    </>
-  );
-}
-
-function Content() {
-  const { viewer, numbers } =
-    useQuery(api.myFunctions.listNumbers, {
-      count: 10,
-    }) ?? {};
-  const addNumber = useMutation(api.myFunctions.addNumber);
-
-  if (viewer === undefined || numbers === undefined) {
+  if (isLoading) {
     return (
-      <div className="mx-auto">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-          <div
-            className="w-2 h-2 bg-slate-500 rounded-full animate-bounce"
-            style={{ animationDelay: "0.1s" }}
-          ></div>
-          <div
-            className="w-2 h-2 bg-slate-600 rounded-full animate-bounce"
-            style={{ animationDelay: "0.2s" }}
-          ></div>
-          <p className="ml-2 text-slate-600 dark:text-slate-400">Loading...</p>
-        </div>
-      </div>
+      <p className="p-10 text-center text-stone-700">Lade ShopAssist...</p>
     );
   }
 
+  if (!isAuthenticated) {
+    return <p className="p-10 text-center text-stone-700">Bitte anmelden.</p>;
+  }
+
   return (
-    <div className="flex flex-col gap-4 max-w-lg mx-auto">
-      <div>
-        <h2 className="font-bold text-xl text-slate-800 dark:text-slate-200">
-          Welcome {viewer ?? "Anonymous"}!
-        </h2>
-        <p className="text-slate-600 dark:text-slate-400 mt-2">
-          You are signed into a demo application using Convex Auth.
-        </p>
-        <p className="text-slate-600 dark:text-slate-400 mt-1">
-          This app can generate random numbers and store them in your Convex
-          database.
-        </p>
-      </div>
-
-      <div className="h-px bg-slate-200 dark:bg-slate-700"></div>
-
-      <div className="flex flex-col gap-4">
-        <h2 className="font-semibold text-xl text-slate-800 dark:text-slate-200">
-          Number generator
-        </h2>
-        <p className="text-slate-600 dark:text-slate-400 text-sm">
-          Click the button below to generate a new number. The data is persisted
-          in the Convex cloud database - open this page in another window and
-          see the data sync automatically!
-        </p>
-        <button
-          className="bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 text-white text-sm font-medium px-6 py-3 rounded-lg cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-          onClick={() => {
-            void addNumber({ value: Math.floor(Math.random() * 10) });
-          }}
-        >
-          + Generate random number
-        </button>
-        <div className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl p-4 shadow-sm">
-          <p className="font-semibold text-slate-800 dark:text-slate-200 mb-2">
-            Newest Numbers
-          </p>
-          <p className="text-slate-700 dark:text-slate-300 font-mono text-lg">
-            {numbers?.length === 0
-              ? "Click the button to generate a number!"
-              : (numbers?.join(", ") ?? "...")}
-          </p>
-        </div>
-      </div>
-
-      <div className="h-px bg-slate-200 dark:bg-slate-700"></div>
-
-      <div className="flex flex-col gap-4">
-        <h2 className="font-semibold text-xl text-slate-800 dark:text-slate-200">
-          Making changes
-        </h2>
-        <p className="text-slate-600 dark:text-slate-400 text-sm">
-          Edit{" "}
-          <code className="text-sm font-semibold font-mono bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600">
-            convex/myFunctions.ts
-          </code>{" "}
-          to change the backend.
-        </p>
-        <p className="text-slate-600 dark:text-slate-400 text-sm">
-          Edit{" "}
-          <code className="text-sm font-semibold font-mono bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600">
-            app/page.tsx
-          </code>{" "}
-          to change the frontend.
-        </p>
-        <p className="text-slate-600 dark:text-slate-400 text-sm">
-          See the{" "}
-          <Link
-            href="/server"
-            className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 font-medium underline decoration-2 underline-offset-2 transition-colors"
-          >
-            /server route
-          </Link>{" "}
-          for an example of loading data in a server component
-        </p>
-      </div>
-
-      <div className="h-px bg-slate-200 dark:bg-slate-700"></div>
-
-      <div className="flex flex-col gap-4">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
-          Useful resources
-        </h2>
-        <div className="flex gap-4">
-          <div className="flex flex-col gap-4 w-1/2">
-            <ResourceCard
-              title="Convex docs"
-              description="Read comprehensive documentation for all Convex features."
-              href="https://docs.convex.dev/home"
-            />
-            <ResourceCard
-              title="Stack articles"
-              description="Learn about best practices, use cases, and more from a growing
-            collection of articles, videos, and walkthroughs."
-              href="https://stack.convex.dev"
-            />
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#fef3c7_0%,_#ffedd5_25%,_#fee2e2_55%,_#f8fafc_100%)] text-stone-900">
+      <header className="sticky top-0 z-10 border-b border-amber-200/70 bg-white/80 px-6 py-4 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-700">
+              ShopAssist MVP
+            </p>
+            <h1 className="font-title text-2xl">Einkaufsservice</h1>
           </div>
-          <div className="flex flex-col gap-4 w-1/2">
-            <ResourceCard
-              title="Templates"
-              description="Browse our collection of templates to get started quickly."
-              href="https://www.convex.dev/templates"
-            />
-            <ResourceCard
-              title="Discord"
-              description="Join our developer community to ask questions, trade tips & tricks,
-            and show off your projects."
-              href="https://www.convex.dev/community"
-            />
-          </div>
+          <SignOutButton />
         </div>
-      </div>
+      </header>
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
+        <Content />
+      </main>
     </div>
   );
 }
 
-function ResourceCard({
+function Content() {
+  const viewer = useQuery(api.users.getViewer);
+
+  if (viewer === undefined) {
+    return <p className="text-stone-700">Profil wird geladen...</p>;
+  }
+
+  if (viewer === null || viewer.role === null) {
+    return <RoleSelection />;
+  }
+
+  return viewer.role === "customer" ? (
+    <CustomerDashboard />
+  ) : (
+    <ShopperDashboard />
+  );
+}
+
+function RoleSelection() {
+  const setRole = useMutation(api.users.setRole);
+
+  return (
+    <section className="grid gap-4 rounded-2xl border border-amber-200 bg-white/90 p-6 shadow-sm md:grid-cols-2">
+      <RoleCard
+        title="Ich brauche Hilfe beim Einkauf"
+        description="Erstelle Einkaufslisten und lass sie von einem Shopper erledigen."
+        cta="Als User starten"
+        onClick={() => void setRole({ role: "customer" })}
+      />
+      <RoleCard
+        title="Ich moechte Bestellungen ausliefern"
+        description="Sieh offene Auftraege, uebernimm einen Auftrag und markiere ihn als geliefert."
+        cta="Als Shopper starten"
+        onClick={() => void setRole({ role: "shopper" })}
+      />
+    </section>
+  );
+}
+
+function RoleCard({
   title,
   description,
-  href,
+  cta,
+  onClick,
 }: {
   title: string;
   description: string;
-  href: string;
+  cta: string;
+  onClick: () => void;
 }) {
   return (
-    <a
-      href={href}
-      className="flex flex-col gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 p-5 rounded-xl h-36 overflow-auto border border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] group cursor-pointer"
-      target="_blank"
-    >
-      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
-        {title} →
-      </h3>
-      <p className="text-xs text-slate-600 dark:text-slate-400">
-        {description}
+    <article className="flex flex-col gap-4 rounded-xl border border-amber-100 bg-amber-50/50 p-5">
+      <h2 className="font-title text-xl">{title}</h2>
+      <p className="text-sm text-stone-700">{description}</p>
+      <button
+        className="mt-auto rounded-lg bg-stone-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-800"
+        onClick={onClick}
+      >
+        {cta}
+      </button>
+    </article>
+  );
+}
+
+function CustomerDashboard() {
+  const createOrder = useMutation(api.orders.createOrder);
+  const orders = useQuery(api.orders.listCustomerOrders) ?? [];
+  const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
+  const [itemsInput, setItemsInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const itemCount = useMemo(
+    () =>
+      itemsInput
+        .split("\n")
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0).length,
+    [itemsInput],
+  );
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    try {
+      await createOrder({
+        title,
+        notes: notes.length > 0 ? notes : undefined,
+        items: itemsInput.split("\n"),
+      });
+      setTitle("");
+      setNotes("");
+      setItemsInput("");
+    } catch (submitError) {
+      const message =
+        submitError instanceof Error
+          ? submitError.message
+          : "Bestellung konnte nicht erstellt werden.";
+      setError(message);
+    }
+  }
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+      <section className="rounded-2xl border border-amber-200 bg-white/90 p-6 shadow-sm">
+        <h2 className="font-title text-2xl">Neue Einkaufsliste</h2>
+        <p className="mt-1 text-sm text-stone-700">
+          Trenne Artikel mit Zeilenumbruechen. Status startet immer mit `open`.
+        </p>
+        <form className="mt-5 flex flex-col gap-3" onSubmit={onSubmit}>
+          <input
+            className="rounded-lg border border-amber-200 bg-white px-3 py-2"
+            placeholder="Titel, z.B. Wocheneinkauf"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+          />
+          <textarea
+            className="min-h-28 rounded-lg border border-amber-200 bg-white px-3 py-2"
+            placeholder="Artikel pro Zeile, z.B.\nMilch\nBrot\nAepfel"
+            value={itemsInput}
+            onChange={(event) => setItemsInput(event.target.value)}
+            required
+          />
+          <textarea
+            className="min-h-20 rounded-lg border border-amber-200 bg-white px-3 py-2"
+            placeholder="Optionale Hinweise (Budget, Marke, etc.)"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+          />
+          <p className="text-xs text-stone-600">
+            Erfasste Artikel: {itemCount}
+          </p>
+          {error && <p className="text-sm font-medium text-red-700">{error}</p>}
+          <button
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+            type="submit"
+          >
+            Bestellung speichern
+          </button>
+        </form>
+      </section>
+
+      <section className="rounded-2xl border border-amber-200 bg-white/90 p-6 shadow-sm">
+        <h2 className="font-title text-2xl">Meine Bestellungen</h2>
+        <OrderList orders={orders} showActions={false} />
+      </section>
+    </div>
+  );
+}
+
+function ShopperDashboard() {
+  const openOrders = useQuery(api.orders.listOpenOrders) ?? [];
+  const myOrders = useQuery(api.orders.listShopperOrders) ?? [];
+  const acceptOrder = useMutation(api.orders.acceptOrder);
+  const markDelivered = useMutation(api.orders.markDelivered);
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <section className="rounded-2xl border border-amber-200 bg-white/90 p-6 shadow-sm">
+        <h2 className="font-title text-2xl">Offene Bestellungen</h2>
+        <OrderList
+          orders={openOrders}
+          showActions
+          onAccept={(orderId) => void acceptOrder({ orderId })}
+        />
+      </section>
+
+      <section className="rounded-2xl border border-amber-200 bg-white/90 p-6 shadow-sm">
+        <h2 className="font-title text-2xl">Meine Auftraege</h2>
+        <OrderList
+          orders={myOrders}
+          showActions
+          onDeliver={(orderId) => void markDelivered({ orderId })}
+        />
+      </section>
+    </div>
+  );
+}
+
+function OrderList({
+  orders,
+  showActions,
+  onAccept,
+  onDeliver,
+}: {
+  orders: Array<{
+    _id: Id<"orders">;
+    title: string;
+    status: "open" | "in_progress" | "delivered";
+    items: string[];
+    notes?: string;
+  }>;
+  showActions: boolean;
+  onAccept?: (orderId: Id<"orders">) => void;
+  onDeliver?: (orderId: Id<"orders">) => void;
+}) {
+  if (orders.length === 0) {
+    return (
+      <p className="mt-4 text-sm text-stone-600">
+        Keine Bestellungen vorhanden.
       </p>
-    </a>
+    );
+  }
+
+  return (
+    <ul className="mt-4 flex flex-col gap-3">
+      {orders.map((order) => (
+        <li
+          key={order._id}
+          className="rounded-xl border border-amber-100 bg-amber-50/50 p-4"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-semibold text-stone-900">{order.title}</h3>
+              <p className="text-xs text-stone-600">
+                {order.items.join(" - ")}
+              </p>
+              {order.notes && (
+                <p className="mt-1 text-xs text-stone-700">
+                  Hinweis: {order.notes}
+                </p>
+              )}
+            </div>
+            <StatusPill status={order.status} />
+          </div>
+          {showActions && order.status === "open" && onAccept && (
+            <button
+              className="mt-3 rounded-lg bg-stone-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-stone-800"
+              onClick={() => onAccept(order._id)}
+            >
+              Auftrag uebernehmen
+            </button>
+          )}
+          {showActions && order.status === "in_progress" && onDeliver && (
+            <button
+              className="mt-3 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
+              onClick={() => onDeliver(order._id)}
+            >
+              Als geliefert markieren
+            </button>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function StatusPill({
+  status,
+}: {
+  status: "open" | "in_progress" | "delivered";
+}) {
+  const label =
+    status === "open"
+      ? "offen"
+      : status === "in_progress"
+        ? "in Bearbeitung"
+        : "geliefert";
+
+  const classes =
+    status === "open"
+      ? "bg-amber-100 text-amber-800 border-amber-200"
+      : status === "in_progress"
+        ? "bg-sky-100 text-sky-800 border-sky-200"
+        : "bg-emerald-100 text-emerald-800 border-emerald-200";
+
+  return (
+    <span
+      className={`rounded-full border px-2 py-1 text-xs font-semibold ${classes}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function SignOutButton() {
+  const { signOut } = useAuthActions();
+  const router = useRouter();
+
+  return (
+    <button
+      className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
+      onClick={() =>
+        void signOut().then(() => {
+          router.push("/signin");
+        })
+      }
+    >
+      Abmelden
+    </button>
   );
 }
