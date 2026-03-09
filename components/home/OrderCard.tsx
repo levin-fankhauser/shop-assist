@@ -1,0 +1,204 @@
+"use client";
+
+import { api } from "@/convex/_generated/api";
+import { Doc } from "@/convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Clock,
+  Loader2,
+  MapPin,
+  Package,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+
+type Order = Doc<"orders">;
+
+type StatusMeta = {
+  label: string;
+  dotClass: string;
+  pillClass: string;
+  next: Order["status"] | null;
+};
+
+const statusMeta: Record<Order["status"], StatusMeta> = {
+  offen: {
+    label: "Offen",
+    dotClass: "bg-amber-400",
+    pillClass: "border-amber-300/40 bg-amber-400/10 text-amber-100",
+    next: "in_bearbeitung",
+  },
+  in_bearbeitung: {
+    label: "In Bearbeitung",
+    dotClass: "bg-cyan-400",
+    pillClass: "border-cyan-300/40 bg-cyan-400/10 text-cyan-100",
+    next: "geliefert",
+  },
+  geliefert: {
+    label: "Geliefert",
+    dotClass: "bg-emerald-400",
+    pillClass: "border-emerald-300/40 bg-emerald-400/10 text-emerald-100",
+    next: null,
+  },
+};
+
+function formatDate(value: string | number) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("de-DE", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+export default function OrderCard({ order }: { order: Order }) {
+  const [error, setError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const updateStatus = useMutation(api.orders.updateOrderStatus);
+
+  const meta = statusMeta[order.status];
+  const nextStatus = meta.next;
+
+  const productSummary = useMemo(() => {
+    if (order.products.length === 0) return "-";
+    const firstItems = order.products
+      .slice(0, 2)
+      .map((item) => `${item.quantity}× ${item.name}`)
+      .join(", ");
+
+    if (order.products.length > 2) {
+      const remaining = order.products.length - 2;
+      return `${firstItems} + ${remaining} weitere`;
+    }
+
+    return firstItems;
+  }, [order.products]);
+
+  const handleAdvance = async () => {
+    if (!nextStatus) return;
+    setError(null);
+    setIsUpdating(true);
+    try {
+      await updateStatus({ orderId: order._id, status: nextStatus });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Aktualisierung fehlgeschlagen",
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  return (
+    <article className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/50">
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-400">
+            Bestellung
+          </p>
+          <h3 className="text-xl font-semibold text-white">{order.title}</h3>
+        </div>
+        <span
+          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${meta.pillClass}`}
+        >
+          <span className={`h-2 w-2 rounded-full ${meta.dotClass}`} />
+          {meta.label}
+        </span>
+      </header>
+
+      <dl className="mt-4 grid grid-cols-1 gap-3 text-sm text-slate-200 sm:grid-cols-2">
+        <div className="flex items-start gap-2">
+          <Package className="mt-0.5 h-4 w-4 text-slate-400" />
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-400">
+              Produkte
+            </dt>
+            <dd className="font-medium text-white">{productSummary}</dd>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-2">
+          <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-400">
+              Adresse
+            </dt>
+            <dd className="font-medium text-white">{order.deliveryAddress}</dd>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-2">
+          <Clock className="mt-0.5 h-4 w-4 text-slate-400" />
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-400">
+              Lieferzeit
+            </dt>
+            <dd className="font-medium text-white">
+              {formatDate(order.desiredDeliveryTime)}
+            </dd>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-2">
+          <BadgeCheck className="mt-0.5 h-4 w-4 text-slate-400" />
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-400">
+              Erstellt
+            </dt>
+            <dd className="font-medium text-white">
+              {formatDate(order._creationTime)}
+            </dd>
+          </div>
+        </div>
+      </dl>
+
+      {order.additionalNotes && (
+        <div className="mt-4 rounded-lg border border-white/10 bg-slate-800/60 p-3 text-sm text-slate-200">
+          <p className="text-xs uppercase tracking-wide text-slate-400">
+            Hinweise
+          </p>
+          <p className="mt-1 leading-relaxed">{order.additionalNotes}</p>
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs text-slate-400">
+          <span className="h-2 w-2 rounded-full bg-amber-400" />
+          <span className="h-2 w-2 rounded-full bg-cyan-400" />
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span>Offen → In Bearbeitung → Geliefert</span>
+        </div>
+
+        {nextStatus ? (
+          <button
+            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:border-cyan-300/50 hover:text-cyan-100"
+            onClick={handleAdvance}
+            disabled={isUpdating}
+          >
+            {isUpdating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Aktualisiert...
+              </>
+            ) : (
+              <>
+                Nächster Schritt
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </button>
+        ) : (
+          <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-300/30 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-100">
+            Abgeschlossen
+          </div>
+        )}
+      </div>
+
+      {error && <p className="mt-3 text-sm text-rose-200">Fehler: {error}</p>}
+    </article>
+  );
+}
