@@ -2,50 +2,17 @@
 
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
-import { useMutation } from "convex/react";
-import {
-  ArrowRight,
-  BadgeCheck,
-  Clock,
-  Loader2,
-  MapPin,
-  Package,
-} from "lucide-react";
+import { useMutation, useQuery } from "convex/react";
+import { ArrowRight, BadgeCheck, Clock, MapPin, Package } from "lucide-react";
 import { useMemo, useState } from "react";
+import OrderDetailDialog from "./OrderDetailDialog";
+import { statusMeta } from "./orderStatusMeta";
 
 type Order = Doc<"orders">;
 
 type ProfileInfo = {
   role: "benutzer" | "shopper";
   userId: Doc<"users">["_id"];
-};
-
-type StatusMeta = {
-  label: string;
-  dotClass: string;
-  pillClass: string;
-  next: Order["status"] | null;
-};
-
-const statusMeta: Record<Order["status"], StatusMeta> = {
-  offen: {
-    label: "Offen",
-    dotClass: "bg-amber-400",
-    pillClass: "border-amber-300/40 bg-amber-400/10 text-amber-100",
-    next: "in_bearbeitung",
-  },
-  in_bearbeitung: {
-    label: "In Bearbeitung",
-    dotClass: "bg-cyan-400",
-    pillClass: "border-cyan-300/40 bg-cyan-400/10 text-cyan-100",
-    next: "geliefert",
-  },
-  geliefert: {
-    label: "Geliefert",
-    dotClass: "bg-emerald-400",
-    pillClass: "border-emerald-300/40 bg-emerald-400/10 text-emerald-100",
-    next: null,
-  },
 };
 
 function formatDate(value: string | number) {
@@ -69,6 +36,7 @@ export default function OrderCard({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const updateStatus = useMutation(api.orders.updateOrderStatus);
   const acceptOrder = useMutation(api.orders.acceptOrder);
 
@@ -76,6 +44,12 @@ export default function OrderCard({
   const isOwner = profile?.userId === order.createdBy;
   const acceptedByMe = order.acceptedBy === profile?.userId;
   const acceptedBySomeoneElse = Boolean(order.acceptedBy && !acceptedByMe);
+
+  const acceptedByProfile = useQuery(
+    api.profiles.getProfileByUserId,
+    order.acceptedBy ? { userId: order.acceptedBy } : "skip",
+  );
+  const acceptedByName = acceptedByProfile?.fullName?.trim() || null;
 
   const meta = statusMeta[order.status];
   const nextStatus = meta.next;
@@ -122,149 +96,137 @@ export default function OrderCard({
     }
   };
 
+  const openDetails = () => {
+    setError(null);
+    setIsDialogOpen(true);
+  };
+
+  const closeDetails = () => setIsDialogOpen(false);
+
   return (
-    <article className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/50">
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-slate-400">
-            Bestellung
-          </p>
-          <h3 className="text-xl font-semibold text-white">{order.title}</h3>
-        </div>
-        <span
-          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${meta.pillClass}`}
-        >
-          <span className={`h-2 w-2 rounded-full ${meta.dotClass}`} />
-          {meta.label}
-        </span>
-      </header>
-
-      <dl className="mt-4 grid grid-cols-1 gap-3 text-sm text-slate-200 sm:grid-cols-2">
-        <div className="flex items-start gap-2">
-          <Package className="mt-0.5 h-4 w-4 text-slate-400" />
+    <>
+      <article className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/50">
+        <header className="flex items-start justify-between gap-3">
           <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400">
-              Produkte
-            </dt>
-            <dd className="font-medium text-white">{productSummary}</dd>
+            <p className="text-xs uppercase tracking-wide text-slate-400">
+              Bestellung
+            </p>
+            <h3 className="text-xl font-semibold text-white">{order.title}</h3>
           </div>
-        </div>
-
-        <div className="flex items-start gap-2">
-          <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400">
-              Adresse
-            </dt>
-            <dd className="font-medium text-white">{order.deliveryAddress}</dd>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-2">
-          <Clock className="mt-0.5 h-4 w-4 text-slate-400" />
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400">
-              Lieferzeit
-            </dt>
-            <dd className="font-medium text-white">
-              {formatDate(order.desiredDeliveryTime)}
-            </dd>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-2">
-          <BadgeCheck className="mt-0.5 h-4 w-4 text-slate-400" />
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400">
-              Erstellt
-            </dt>
-            <dd className="font-medium text-white">
-              {formatDate(order._creationTime)}
-            </dd>
-          </div>
-        </div>
-      </dl>
-
-      {order.additionalNotes && (
-        <div className="mt-4 rounded-lg border border-white/10 bg-slate-800/60 p-3 text-sm text-slate-200">
-          <p className="text-xs uppercase tracking-wide text-slate-400">
-            Hinweise
-          </p>
-          <p className="mt-1 leading-relaxed">{order.additionalNotes}</p>
-        </div>
-      )}
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span className="h-2 w-2 rounded-full bg-amber-400" />
-          <span className="h-2 w-2 rounded-full bg-cyan-400" />
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <span>Offen → In Bearbeitung → Geliefert</span>
-        </div>
-
-        {isShopper && order.status === "offen" && !acceptedBySomeoneElse && (
-          <button
-            className="inline-flex items-center gap-2 rounded-lg border border-cyan-300/40 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-50 transition hover:border-cyan-200/70"
-            onClick={handleAccept}
-            disabled={isUpdating}
+          <span
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${meta.pillClass}`}
           >
-            {isUpdating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Übernehme…
-              </>
-            ) : (
-              <>
-                Bestellung übernehmen
-                <ArrowRight className="h-4 w-4" />
-              </>
-            )}
-          </button>
-        )}
+            <span className={`h-2 w-2 rounded-full ${meta.dotClass}`} />
+            {meta.label}
+          </span>
+        </header>
 
-        {isShopper &&
-          nextStatus &&
-          acceptedByMe &&
-          order.status !== "offen" && (
-            <button
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:border-cyan-300/50 hover:text-cyan-100"
-              onClick={handleAdvance}
-              disabled={isUpdating}
-            >
-              {isUpdating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Aktualisiert...
-                </>
-              ) : (
-                <>
-                  Bestellung abgeschlossen
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          )}
+        <dl className="mt-4 grid grid-cols-1 gap-3 text-sm text-slate-200 sm:grid-cols-2">
+          <div className="flex items-start gap-2">
+            <Package className="mt-0.5 h-4 w-4 text-slate-400" />
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-400">
+                Produkte
+              </dt>
+              <dd className="font-medium text-white">{productSummary}</dd>
+            </div>
+          </div>
 
-        {order.status === "geliefert" && (
-          <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-300/30 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-100">
-            Abgeschlossen
+          <div className="flex items-start gap-2">
+            <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-400">
+                Adresse
+              </dt>
+              <dd className="font-medium text-white">
+                {order.deliveryAddress}
+              </dd>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <Clock className="mt-0.5 h-4 w-4 text-slate-400" />
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-400">
+                Lieferzeit
+              </dt>
+              <dd className="font-medium text-white">
+                {formatDate(order.desiredDeliveryTime)}
+              </dd>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <BadgeCheck className="mt-0.5 h-4 w-4 text-slate-400" />
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-400">
+                Erstellt
+              </dt>
+              <dd className="font-medium text-white">
+                {formatDate(order._creationTime)}
+              </dd>
+            </div>
+          </div>
+        </dl>
+
+        {order.additionalNotes && (
+          <div className="mt-4 rounded-lg border border-white/10 bg-slate-800/60 p-3 text-sm text-slate-200">
+            <p className="text-xs uppercase tracking-wide text-slate-400">
+              Hinweise
+            </p>
+            <p className="mt-1 leading-relaxed">{order.additionalNotes}</p>
           </div>
         )}
-      </div>
 
-      {isShopper && order.acceptedBy && (
-        <p className="mt-2 text-xs text-slate-400">
-          {acceptedByMe
-            ? "Von dir übernommen"
-            : "Von einem anderen Shopper übernommen"}
-        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            <span className="h-2 w-2 rounded-full bg-cyan-400" />
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span>Offen → In Bearbeitung → Geliefert</span>
+          </div>
+
+          <button
+            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:border-cyan-300/50 hover:text-cyan-100"
+            onClick={openDetails}
+          >
+            Details & Status
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+
+        {isShopper && order.acceptedBy && (
+          <p className="mt-2 text-xs text-slate-400">
+            {acceptedByMe
+              ? "Von dir übernommen"
+              : acceptedByName
+                ? `Von Shopper: ${acceptedByName} übernommen`
+                : "Von Shopper übernommen"}
+          </p>
+        )}
+
+        {isOwner && !isShopper && (
+          <p className="mt-2 text-xs text-slate-400">Deine Bestellung</p>
+        )}
+      </article>
+
+      {isDialogOpen && (
+        <OrderDetailDialog
+          order={order}
+          meta={meta}
+          nextStatus={nextStatus}
+          nextStatusLabel={nextStatus ? statusMeta[nextStatus].label : null}
+          isShopper={isShopper}
+          acceptedByMe={acceptedByMe}
+          acceptedBySomeoneElse={acceptedBySomeoneElse}
+          onAccept={handleAccept}
+          onAdvance={handleAdvance}
+          onClose={closeDetails}
+          isUpdating={isUpdating}
+          error={error}
+          acceptedByName={acceptedByName}
+        />
       )}
-
-      {isOwner && !isShopper && (
-        <p className="mt-2 text-xs text-slate-400">Deine Bestellung</p>
-      )}
-
-      {error && <p className="mt-3 text-sm text-rose-200">Fehler: {error}</p>}
-    </article>
+    </>
   );
 }

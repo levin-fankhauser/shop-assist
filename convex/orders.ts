@@ -14,6 +14,7 @@ const productValidator = v.object({
   name: v.string(),
   quantity: v.number(),
   note: v.optional(v.string()),
+  completed: v.optional(v.boolean()),
 });
 
 export const createOrder = mutation({
@@ -54,9 +55,16 @@ export const createOrder = mutation({
       throw new Error("Gewünschte Lieferzeit angeben");
     }
 
+    const products = args.products.map((product) => ({
+      name: product.name,
+      quantity: product.quantity,
+      note: product.note,
+      completed: false,
+    }));
+
     const orderId = await ctx.db.insert("orders", {
       title,
-      products: args.products,
+      products,
       deliveryAddress,
       desiredDeliveryTime,
       additionalNotes: args.additionalNotes?.trim() || undefined,
@@ -270,5 +278,53 @@ export const updateOrderStatus = mutation({
     }
 
     await ctx.db.patch(args.orderId, { status: args.status });
+  },
+});
+
+export const setProductCompleted = mutation({
+  args: {
+    orderId: v.id("orders"),
+    index: v.number(),
+    completed: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Nicht angemeldet");
+    }
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (profile?.role !== "shopper") {
+      throw new Error("Nur Shopper dürfen Produkte abhaken");
+    }
+
+    const order = await ctx.db.get(args.orderId);
+    if (!order) {
+      throw new Error("Bestellung nicht gefunden");
+    }
+
+    if (order.acceptedBy !== userId) {
+      throw new Error("Nur der übernehmende Shopper kann Produkte abhaken");
+    }
+
+    if (order.status === "geliefert") {
+      throw new Error(
+        "Abgeschlossene Bestellungen können nicht geändert werden",
+      );
+    }
+
+    if (args.index < 0 || args.index >= order.products.length) {
+      throw new Error("Ungültiger Produktindex");
+    }
+
+    const products = order.products.map((product, idx) =>
+      idx === args.index ? { ...product, completed: args.completed } : product,
+    );
+
+    await ctx.db.patch(args.orderId, { products });
   },
 });

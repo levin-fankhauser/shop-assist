@@ -56,3 +56,29 @@ export const upsertProfile = mutation({
     return await ctx.db.insert("profiles", payload);
   },
 });
+
+export const getProfileByUserId = query({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const requesterId = await getAuthUserId(ctx);
+    if (!requesterId) {
+      throw new Error("Nicht angemeldet");
+    }
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .unique();
+
+    if (!profile) return null;
+
+    return {
+      fullName: profile.fullName ?? null,
+      role: profile.role,
+      profileId: profile._id,
+      userId: profile.userId,
+    } as const;
+  },
+});

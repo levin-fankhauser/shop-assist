@@ -22,6 +22,7 @@ export default defineSchema({
         name: v.string(),
         quantity: v.number(),
         note: v.optional(v.string()),
+        completed: v.optional(v.boolean()),
       }),
     ),
     deliveryAddress: v.string(),
