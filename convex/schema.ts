@@ -10,6 +10,11 @@ export default defineSchema({
   numbers: defineTable({
     value: v.number(),
   }),
+  profiles: defineTable({
+    userId: v.id("users"),
+    fullName: v.optional(v.string()),
+    role: v.union(v.literal("benutzer"), v.literal("shopper")),
+  }).index("by_userId", ["userId"]),
   orders: defineTable({
     title: v.string(),
     products: v.array(
@@ -28,5 +33,8 @@ export default defineSchema({
       v.literal("geliefert"),
     ),
     createdBy: v.id("users"),
-  }).index("by_createdBy", ["createdBy"]),
+    acceptedBy: v.optional(v.id("users")),
+  })
+    .index("by_createdBy", ["createdBy"])
+    .index("by_acceptedBy", ["acceptedBy"]),
 });

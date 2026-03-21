@@ -28,6 +28,23 @@ export default function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-3">
+          <nav className="flex items-center gap-1 rounded-full border border-white/5 bg-slate-900/70 p-1 text-sm font-medium text-slate-200">
+            {[
+              { href: "/", label: "Bestellungen" },
+              { href: "/konto", label: "Konto" },
+            ].map((link) => {
+              const active = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`rounded-full px-3 py-1.5 transition ${active ? "bg-cyan-400 text-slate-950" : "hover:bg-white/5"}`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
           <SignOutButton />
         </div>
       </div>

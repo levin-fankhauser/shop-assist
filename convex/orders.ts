@@ -69,6 +69,78 @@ export const createOrder = mutation({
 });
 
 export const listOrders = query({
+  args: {
+    scope: v.optional(v.literal("all")),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Nicht angemeldet");
+    }
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    const role = profile?.role ?? "benutzer";
+    const scope = args.scope === "all" ? "all" : "own";
+
+    if (scope === "all" && role !== "shopper") {
+      throw new Error("Keine Berechtigung für alle Bestellungen");
+    }
+
+    const scopedQuery =
+      scope === "own"
+        ? ctx.db
+            .query("orders")
+            .withIndex("by_createdBy", (q) => q.eq("createdBy", userId))
+        : ctx.db.query("orders");
+
+    const results = await scopedQuery
+      .order("desc")
+      .take(scope === "all" ? 200 : 50);
+
+    // In der Hauptliste nur aktive Bestellungen zeigen.
+    return results.filter((o) => o.status !== "geliefert");
+  },
+});
+
+export const listCompletedOrders = query({
+  args: {
+    scope: v.optional(v.literal("all")),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Nicht angemeldet");
+    }
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    const role = profile?.role ?? "benutzer";
+    const scope = args.scope === "all" ? "all" : "own";
+
+    if (scope === "all" && role !== "shopper") {
+      throw new Error("Keine Berechtigung für alle Bestellungen");
+    }
+
+    const scopedQuery =
+      scope === "own"
+        ? ctx.db
+            .query("orders")
+            .withIndex("by_createdBy", (q) => q.eq("createdBy", userId))
+        : ctx.db.query("orders");
+
+    const results = await scopedQuery.order("desc").take(200);
+    return results.filter((o) => o.status === "geliefert");
+  },
+});
+
+export const listAcceptedByMe = query({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
@@ -76,13 +148,82 @@ export const listOrders = query({
       throw new Error("Nicht angemeldet");
     }
 
-    const orders = await ctx.db
-      .query("orders")
-      .withIndex("by_createdBy", (q) => q.eq("createdBy", userId))
-      .order("desc")
-      .take(50);
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
 
-    return orders;
+    if (profile?.role !== "shopper") {
+      return [];
+    }
+
+    return await ctx.db
+      .query("orders")
+      .withIndex("by_acceptedBy", (q) => q.eq("acceptedBy", userId))
+      .order("desc")
+      .take(200)
+      .then((orders) => orders.filter((o) => o.status !== "geliefert"));
+  },
+});
+
+export const listAvailableForShopper = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Nicht angemeldet");
+    }
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (profile?.role !== "shopper") {
+      return [];
+    }
+
+    const all = await ctx.db.query("orders").order("desc").take(200);
+    return all.filter((order) => order.status === "offen" && !order.acceptedBy);
+  },
+});
+
+export const acceptOrder = mutation({
+  args: {
+    orderId: v.id("orders"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Nicht angemeldet");
+    }
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (profile?.role !== "shopper") {
+      throw new Error("Nur Shopper können Bestellungen annehmen");
+    }
+
+    const order = await ctx.db.get(args.orderId);
+    if (!order) {
+      throw new Error("Bestellung nicht gefunden");
+    }
+
+    if (order.acceptedBy && order.acceptedBy !== userId) {
+      throw new Error("Bestellung wurde bereits übernommen");
+    }
+
+    if (order.status !== "offen") {
+      throw new Error("Nur offene Bestellungen können angenommen werden");
+    }
+
+    await ctx.db.patch(args.orderId, {
+      acceptedBy: userId,
+      status: "in_bearbeitung",
+    });
   },
 });
 
@@ -101,13 +242,26 @@ export const updateOrderStatus = mutation({
       throw new Error("Nicht angemeldet");
     }
 
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (profile?.role !== "shopper") {
+      throw new Error("Nur Shopper dürfen den Status ändern");
+    }
+
     const order = await ctx.db.get(args.orderId);
     if (!order) {
       throw new Error("Bestellung nicht gefunden");
     }
 
-    if (order.createdBy !== userId) {
-      throw new Error("Keine Berechtigung für diese Bestellung");
+    if (order.acceptedBy !== userId) {
+      throw new Error("Nur der übernehmende Shopper kann aktualisieren");
+    }
+
+    if (order.status === "offen") {
+      throw new Error("Offene Bestellungen zuerst übernehmen");
     }
 
     const nextAllowed = allowedTransitions[order.status];

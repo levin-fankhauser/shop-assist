@@ -15,6 +15,11 @@ import { useMemo, useState } from "react";
 
 type Order = Doc<"orders">;
 
+type ProfileInfo = {
+  role: "benutzer" | "shopper";
+  userId: Doc<"users">["_id"];
+};
+
 type StatusMeta = {
   label: string;
   dotClass: string;
@@ -55,10 +60,22 @@ function formatDate(value: string | number) {
   });
 }
 
-export default function OrderCard({ order }: { order: Order }) {
+export default function OrderCard({
+  order,
+  profile,
+}: {
+  order: Order;
+  profile: ProfileInfo | null;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const updateStatus = useMutation(api.orders.updateOrderStatus);
+  const acceptOrder = useMutation(api.orders.acceptOrder);
+
+  const isShopper = profile?.role === "shopper";
+  const isOwner = profile?.userId === order.createdBy;
+  const acceptedByMe = order.acceptedBy === profile?.userId;
+  const acceptedBySomeoneElse = Boolean(order.acceptedBy && !acceptedByMe);
 
   const meta = statusMeta[order.status];
   const nextStatus = meta.next;
@@ -88,6 +105,18 @@ export default function OrderCard({ order }: { order: Order }) {
       setError(
         err instanceof Error ? err.message : "Aktualisierung fehlgeschlagen",
       );
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleAccept = async () => {
+    setError(null);
+    setIsUpdating(true);
+    try {
+      await acceptOrder({ orderId: order._id });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Übernahme fehlgeschlagen");
     } finally {
       setIsUpdating(false);
     }
@@ -173,30 +202,67 @@ export default function OrderCard({ order }: { order: Order }) {
           <span>Offen → In Bearbeitung → Geliefert</span>
         </div>
 
-        {nextStatus ? (
+        {isShopper && order.status === "offen" && !acceptedBySomeoneElse && (
           <button
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:border-cyan-300/50 hover:text-cyan-100"
-            onClick={handleAdvance}
+            className="inline-flex items-center gap-2 rounded-lg border border-cyan-300/40 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-50 transition hover:border-cyan-200/70"
+            onClick={handleAccept}
             disabled={isUpdating}
           >
             {isUpdating ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Aktualisiert...
+                Übernehme…
               </>
             ) : (
               <>
-                Nächster Schritt
+                Bestellung übernehmen
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
           </button>
-        ) : (
+        )}
+
+        {isShopper &&
+          nextStatus &&
+          acceptedByMe &&
+          order.status !== "offen" && (
+            <button
+              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:border-cyan-300/50 hover:text-cyan-100"
+              onClick={handleAdvance}
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Aktualisiert...
+                </>
+              ) : (
+                <>
+                  Bestellung abgeschlossen
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          )}
+
+        {order.status === "geliefert" && (
           <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-300/30 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-100">
             Abgeschlossen
           </div>
         )}
       </div>
+
+      {isShopper && order.acceptedBy && (
+        <p className="mt-2 text-xs text-slate-400">
+          {acceptedByMe
+            ? "Von dir übernommen"
+            : "Von einem anderen Shopper übernommen"}
+        </p>
+      )}
+
+      {isOwner && !isShopper && (
+        <p className="mt-2 text-xs text-slate-400">Deine Bestellung</p>
+      )}
 
       {error && <p className="mt-3 text-sm text-rose-200">Fehler: {error}</p>}
     </article>
