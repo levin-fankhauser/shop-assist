@@ -13,7 +13,7 @@ Eine schlanke Einkaufslisten-Plattform, in der Nutzer Bestellungen erfassen und 
 
 ShopAssist trennt klar zwischen Auftraggebern (Bestellungen erfassen) und Shoppern (Bestellungen übernehmen und ausliefern). Statuswechsel sind strikt geregelt, Validierung und Rollenlogik laufen im Convex-Backend, die UI reagiert in Echtzeit.
 
-#### Das Projekt ist auf [shop-assist-six.vercel.app](shop-assist-six.vercel.app) deployed und kann dort ausprobiert werden.
+#### Das Projekt ist auf [https://shop-assist-six.vercel.app/](https://shop-assist-six.vercel.app/) deployed und kann dort ausprobiert werden.
 
 ### ✨ Kernfunktionen
 
