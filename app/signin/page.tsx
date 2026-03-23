@@ -13,7 +13,7 @@ export default function SignIn() {
   const router = useRouter();
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-cyan-50 px-4 py-8 text-slate-900 sm:px-6 sm:py-12 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
+    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-slate-50 via-white to-cyan-50 px-4 py-8 text-slate-900 sm:px-6 sm:py-12 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(14,165,233,0.22),transparent_34%),radial-gradient(circle_at_80%_80%,rgba(34,197,94,0.18),transparent_36%)]" />
 
       <div className="relative mx-auto flex min-h-[80vh] w-full max-w-md items-center">

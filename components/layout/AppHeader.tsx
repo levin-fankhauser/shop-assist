@@ -42,7 +42,7 @@ export default function AppHeader() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`rounded-full px-3 py-1.5 transition ${active ? "bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-sm" : "hover:bg-slate-100 dark:hover:bg-white/5"}`}
+                  className={`rounded-full px-3 py-1.5 transition ${active ? "bg-linear-to-r from-cyan-500 to-emerald-500 text-white shadow-sm" : "hover:bg-slate-100 dark:hover:bg-white/5"}`}
                 >
                   {link.label}
                 </Link>
