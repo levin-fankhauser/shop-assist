@@ -61,10 +61,10 @@ export default function OrderList() {
         <section className="space-y-3">
           <header className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-wide text-cyan-200">
+              <p className="text-xs uppercase tracking-wide text-cyan-700 dark:text-cyan-200">
                 Übernommen
               </p>
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Meine aktiven Bestellungen
               </h3>
             </div>
@@ -91,10 +91,10 @@ export default function OrderList() {
         <section className="space-y-3">
           <header className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-wide text-slate-400">
+              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Offene Bestellungen
               </p>
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Verfügbar zur Übernahme
               </h3>
             </div>

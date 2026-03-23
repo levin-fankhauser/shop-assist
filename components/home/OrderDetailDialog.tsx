@@ -71,16 +71,18 @@ export default function OrderDetailDialog({
         onClick={onClose}
       />
 
-      <div className="relative z-10 w-full max-w-3xl rounded-2xl border border-white/10 bg-slate-900/90 p-6 shadow-2xl shadow-black/60">
+      <div className="relative z-10 w-full max-w-3xl rounded-2xl border border-slate-200 bg-white/95 p-6 text-slate-800 shadow-[0_24px_70px_rgba(15,23,42,0.16)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/90 dark:text-slate-200">
         <header className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-wide text-slate-400">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Details & Status
             </p>
-            <h3 className="text-2xl font-semibold text-white">{order.title}</h3>
+            <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">
+              {order.title}
+            </h3>
           </div>
           <button
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 transition hover:border-cyan-300/50 hover:text-cyan-100"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 transition hover:border-cyan-500/60 hover:text-cyan-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-cyan-300/50 dark:hover:text-cyan-100"
             onClick={onClose}
           >
             Schließen
@@ -88,7 +90,7 @@ export default function OrderDetailDialog({
           </button>
         </header>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
           <span
             className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${meta.pillClass}`}
           >
@@ -96,7 +98,7 @@ export default function OrderDetailDialog({
             {meta.label}
           </span>
           {order.acceptedBy && (
-            <span className="rounded-full border border-white/10 bg-slate-800 px-3 py-1 text-xs text-slate-200">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200">
               {acceptedByMe
                 ? "Von dir übernommen"
                 : acceptedByName
@@ -106,12 +108,12 @@ export default function OrderDetailDialog({
           )}
         </div>
 
-        <div className="mt-5 grid gap-4 text-sm text-slate-200 sm:grid-cols-2">
-          <div className="rounded-xl border border-white/10 bg-slate-800/60 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
+        <div className="mt-5 grid gap-4 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-800/60">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Produkte
             </p>
-            <ul className="mt-3 space-y-3 text-white">
+            <ul className="mt-3 space-y-3 text-slate-900 dark:text-white">
               {order.products.map((item, idx) => {
                 const completed = Boolean(item.completed);
 
@@ -122,7 +124,7 @@ export default function OrderDetailDialog({
                   >
                     <input
                       type="checkbox"
-                      className="mt-1 h-4 w-4 rounded border-white/20 bg-slate-900 text-cyan-400 focus:ring-cyan-300"
+                      className="mt-1 h-4 w-4 rounded border-slate-300 bg-white text-cyan-600 focus:ring-cyan-400 dark:border-white/20 dark:bg-slate-900 dark:text-cyan-400"
                       checked={completed}
                       disabled={
                         !canToggleProducts || updatingProductIndex === idx
@@ -137,14 +139,14 @@ export default function OrderDetailDialog({
                           className={
                             completed
                               ? "text-slate-400 line-through"
-                              : "text-white"
+                              : "text-slate-900 dark:text-white"
                           }
                         >
                           {item.quantity}× {item.name}
                         </span>
                       </div>
                       {item.note && (
-                        <div className="text-xs text-slate-400">
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
                           ({item.note})
                         </div>
                       )}
@@ -154,34 +156,34 @@ export default function OrderDetailDialog({
               })}
             </ul>
             {productError && (
-              <p className="mt-3 text-sm text-rose-200">
+              <p className="mt-3 text-sm text-rose-500 dark:text-rose-200">
                 Fehler: {productError}
               </p>
             )}
           </div>
 
-          <div className="space-y-3 rounded-xl border border-white/10 bg-slate-800/60 p-4">
+          <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-800/60">
             <div>
-              <p className="text-xs uppercase tracking-wide text-slate-400">
+              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Adresse
               </p>
-              <p className="mt-1 font-semibold text-white">
+              <p className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {order.deliveryAddress}
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-slate-400">
+              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Lieferzeit
               </p>
-              <p className="mt-1 font-semibold text-white">
+              <p className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {formatDate(order.desiredDeliveryTime)}
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-slate-400">
+              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Erstellt
               </p>
-              <p className="mt-1 font-semibold text-white">
+              <p className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {formatDate(order._creationTime)}
               </p>
             </div>
@@ -189,28 +191,28 @@ export default function OrderDetailDialog({
         </div>
 
         {order.additionalNotes && (
-          <div className="mt-4 rounded-xl border border-white/10 bg-slate-800/80 p-4 text-sm text-slate-100">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-100">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Hinweise
             </p>
-            <p className="mt-1 leading-relaxed text-white">
+            <p className="mt-1 leading-relaxed text-slate-900 dark:text-white">
               {order.additionalNotes}
             </p>
           </div>
         )}
 
         {isShopper && (
-          <div className="mt-5 rounded-xl border border-white/10 bg-slate-800/80 p-4 text-sm text-slate-200">
+          <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-200">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">
+                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   Status ändern
                 </p>
-                <p className="text-sm text-slate-300">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
                   Änderungen sind nur im Detail erlaubt.
                 </p>
               </div>
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
                 Offen → In Bearbeitung → Geliefert
               </div>
             </div>
@@ -218,7 +220,7 @@ export default function OrderDetailDialog({
             <div className="mt-3 space-y-3">
               {order.status === "offen" && !acceptedBySomeoneElse && (
                 <button
-                  className="inline-flex items-center gap-2 rounded-lg border border-cyan-300/40 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-50 transition hover:border-cyan-200/70"
+                  className="inline-flex items-center gap-2 rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-medium text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100 dark:border-cyan-300/40 dark:bg-cyan-400/10 dark:text-cyan-50 dark:hover:border-cyan-200/70"
                   onClick={onAccept}
                   disabled={isUpdating}
                 >
@@ -237,7 +239,7 @@ export default function OrderDetailDialog({
               )}
 
               {order.status === "offen" && acceptedBySomeoneElse && (
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   {acceptedByName
                     ? `Bereits von Shopper: ${acceptedByName} übernommen.`
                     : "Bereits von einem anderen Shopper übernommen."}
@@ -246,7 +248,7 @@ export default function OrderDetailDialog({
 
               {acceptedByMe && nextStatus && order.status !== "offen" && (
                 <button
-                  className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:border-cyan-300/50 hover:text-cyan-100"
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 transition hover:border-cyan-500/60 hover:text-cyan-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:hover:border-cyan-300/50 dark:hover:text-cyan-100"
                   onClick={onAdvance}
                   disabled={isUpdating}
                 >
@@ -266,19 +268,21 @@ export default function OrderDetailDialog({
               )}
 
               {order.status === "geliefert" && (
-                <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-300/30 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-100">
+                <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-800 dark:border-emerald-300/30 dark:bg-emerald-400/10 dark:text-emerald-100">
                   Abgeschlossen
                 </div>
               )}
 
               {!acceptedByMe && order.status === "in_bearbeitung" && (
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   Nur der Shopper, der übernommen hat, kann den Status ändern.
                 </p>
               )}
 
               {error && (
-                <p className="text-sm text-rose-200">Fehler: {error}</p>
+                <p className="text-sm text-rose-500 dark:text-rose-200">
+                  Fehler: {error}
+                </p>
               )}
             </div>
           </div>

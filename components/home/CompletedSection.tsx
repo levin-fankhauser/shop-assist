@@ -19,19 +19,19 @@ export default function CompletedSection({
   const hasOrders = Array.isArray(orders) && orders.length > 0;
 
   return (
-    <details className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 text-slate-200">
-      <summary className="flex cursor-pointer items-center justify-between text-sm font-semibold text-white">
+    <details className="rounded-2xl border border-slate-200/80 bg-white/85 p-4 text-slate-800 shadow-[0_10px_35px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
+      <summary className="flex cursor-pointer items-center justify-between text-sm font-semibold text-slate-900 dark:text-white">
         <span>Abgeschlossene Bestellungen</span>
-        <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-slate-100">
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-white/10 dark:text-slate-100">
           {orders === undefined ? "…" : count}
         </span>
       </summary>
 
-      <div className="mt-3 space-y-3 text-sm text-slate-300">
+      <div className="mt-3 space-y-3 text-sm text-slate-600 dark:text-slate-300">
         {orders === undefined ? (
-          <div className="text-slate-400">Lädt…</div>
+          <div className="text-slate-500 dark:text-slate-400">Lädt…</div>
         ) : !hasOrders ? (
-          <div className="text-slate-400">
+          <div className="text-slate-500 dark:text-slate-400">
             Keine abgeschlossenen Bestellungen.
           </div>
         ) : (

@@ -105,13 +105,15 @@ export default function OrderCard({
 
   return (
     <>
-      <article className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/50">
+      <article className="rounded-2xl border border-slate-200/80 bg-white/90 p-5 shadow-[0_16px_45px_rgba(15,23,42,0.08)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-slate-900/70 dark:shadow-slate-950/50">
         <header className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-wide text-slate-400">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Bestellung
             </p>
-            <h3 className="text-xl font-semibold text-white">{order.title}</h3>
+            <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+              {order.title}
+            </h3>
           </div>
           <span
             className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${meta.pillClass}`}
@@ -121,48 +123,50 @@ export default function OrderCard({
           </span>
         </header>
 
-        <dl className="mt-4 grid grid-cols-1 gap-3 text-sm text-slate-200 sm:grid-cols-2">
+        <dl className="mt-4 grid grid-cols-1 gap-3 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
           <div className="flex items-start gap-2">
-            <Package className="mt-0.5 h-4 w-4 text-slate-400" />
+            <Package className="mt-0.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-400">
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Produkte
               </dt>
-              <dd className="font-medium text-white">{productSummary}</dd>
+              <dd className="font-medium text-slate-900 dark:text-white">
+                {productSummary}
+              </dd>
             </div>
           </div>
 
           <div className="flex items-start gap-2">
-            <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
+            <MapPin className="mt-0.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-400">
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Adresse
               </dt>
-              <dd className="font-medium text-white">
+              <dd className="font-medium text-slate-900 dark:text-white">
                 {order.deliveryAddress}
               </dd>
             </div>
           </div>
 
           <div className="flex items-start gap-2">
-            <Clock className="mt-0.5 h-4 w-4 text-slate-400" />
+            <Clock className="mt-0.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-400">
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Lieferzeit
               </dt>
-              <dd className="font-medium text-white">
+              <dd className="font-medium text-slate-900 dark:text-white">
                 {formatDate(order.desiredDeliveryTime)}
               </dd>
             </div>
           </div>
 
           <div className="flex items-start gap-2">
-            <BadgeCheck className="mt-0.5 h-4 w-4 text-slate-400" />
+            <BadgeCheck className="mt-0.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-400">
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Erstellt
               </dt>
-              <dd className="font-medium text-white">
+              <dd className="font-medium text-slate-900 dark:text-white">
                 {formatDate(order._creationTime)}
               </dd>
             </div>
@@ -170,8 +174,8 @@ export default function OrderCard({
         </dl>
 
         {order.additionalNotes && (
-          <div className="mt-4 rounded-lg border border-white/10 bg-slate-800/60 p-3 text-sm text-slate-200">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
+          <div className="mt-4 rounded-lg border border-slate-200/80 bg-slate-50 p-3 text-sm text-slate-700 dark:border-white/10 dark:bg-slate-800/60 dark:text-slate-200">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Hinweise
             </p>
             <p className="mt-1 leading-relaxed">{order.additionalNotes}</p>
@@ -179,7 +183,7 @@ export default function OrderCard({
         )}
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <span className="h-2 w-2 rounded-full bg-amber-400" />
             <span className="h-2 w-2 rounded-full bg-cyan-400" />
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
@@ -187,7 +191,7 @@ export default function OrderCard({
           </div>
 
           <button
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:border-cyan-300/50 hover:text-cyan-100"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200/80 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:border-cyan-500/60 hover:text-cyan-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:hover:border-cyan-300/50 dark:hover:text-cyan-100"
             onClick={openDetails}
           >
             Details & Status
@@ -196,7 +200,7 @@ export default function OrderCard({
         </div>
 
         {isShopper && order.acceptedBy && (
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             {acceptedByMe
               ? "Von dir übernommen"
               : acceptedByName
@@ -206,7 +210,9 @@ export default function OrderCard({
         )}
 
         {isOwner && !isShopper && (
-          <p className="mt-2 text-xs text-slate-400">Deine Bestellung</p>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            Deine Bestellung
+          </p>
         )}
       </article>
 
