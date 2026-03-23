@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "ShopAssist",
   description: "ShopAssist - Lieferdienst-Plattform für Kunden und Kuriere.",
   icons: {
-    icon: "/convex.svg",
+    icon: "/app-icon.svg",
   },
 };
 
